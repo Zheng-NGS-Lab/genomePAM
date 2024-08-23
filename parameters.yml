@@ -1,0 +1,15 @@
+# Assay-specific parameters
+FQDIR: 
+OUTDIR: 
+
+Read1Tail: AGATCGGAAGAGCACACGTC
+Read2Tail: AGATCGGAAGAGCGTCGTGT
+pos1: 11
+pos2: 18
+posR2: 8
+xNs: NNNNNNNNNN
+FIXSEQ: AGTGACAC
+BWATHREADS: 4
+
+# Environment-specific parameters
+GENOME: hg38

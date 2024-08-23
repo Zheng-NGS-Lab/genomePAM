@@ -1,0 +1,6 @@
+module_order:
+    - fastqc:
+        name: 'FastQC (raw)'
+        info: 'This section of the report shows FastQC results of raw demultiplexed reads.'
+        path_filters:
+            - '*.zip'

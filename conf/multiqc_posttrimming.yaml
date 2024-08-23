@@ -1,0 +1,6 @@
+module_order:
+    - fastqc:
+        name: 'FastQC (After trimming and consolidation)'
+        info: 'This section of the report shows FastQC results after adapter/UMI trimming + consolidation.'
+        path_filters:
+            - '*.zip'
