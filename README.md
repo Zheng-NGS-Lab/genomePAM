@@ -1,5 +1,5 @@
 # genomePAM
-Repository for genomePAM
+Nextflow pipeline to identify human PAM
 
 ## Setup
 Please install the following programs
@@ -10,7 +10,7 @@ Please install the following programs
 - snpEff (http://pcingola.github.io/SnpEff/)
 - BWA (https://github.com/lh3/bwa)
 - BWA-indexed reference genome (tested on GRCh37)
-- conda
+- Conda
 
 
 ## Setup
@@ -18,6 +18,8 @@ Please install the required programs and conda environment
 
 Conda environment YAML can be found in 
 ```conda/genomePAM.yml```
+and 
+```conda/r_conda.yml```
 
 Please use BWA to index the reference genome
 ```bwa index hg38.fna```
