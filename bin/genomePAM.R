@@ -63,7 +63,7 @@ if (is.na(pamDir)) {
     cat("No PAM direction detected.\n")  # Output message to stdout
 }
 # Clean up spacer and PAM candidate sequences
-spacer <- sub('[^GCTA]', '', spacer0) # in case mixed spacers (i.e. N, W, S...) are used in one sample
+spacer <- sub('.*[^GCTA]', '', spacer0) # in case mixed spacers (i.e. N, W, S...) are used in one sample
 PAMcand <- sub(spacer0, '', target)
 lenPAM <- nchar(PAMcand)
 
