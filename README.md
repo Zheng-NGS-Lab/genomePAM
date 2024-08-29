@@ -51,7 +51,7 @@ Path to input directories and corresponding parameters has to be specified in a 
 6. `pos1`: 
 7. `pos2`: 
 8. `posR2`: 
-9. `xNs`: 
+9. `xNs`: Length of 
 10. `FIXSEQ`: 
 11. `GENOME`: Path to a BWA-indexed reference genome
 12. `HGVER`: hg19 or hg38 (only tested on hg19)

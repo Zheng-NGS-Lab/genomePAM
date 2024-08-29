@@ -1,6 +1,8 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+// import modules
+
 include { FASTQC as FASTQC_PRE; FASTQC as FASTQC_POST } from './modules/nf-core/fastqc/main.nf'  
 include { MULTIQC as MULTIQC_PRE; MULTIQC as MULTIQC_POST } from './modules/nf-core/multiqc/main.nf'
 include { trim_tag_umi } from  './modules/local/trim_tag_umi.nf'
@@ -9,6 +11,8 @@ include { align_identify } from  './modules/local/align_identify.nf'
 include { annotate } from  './modules/local/annotate.nf'
 include { visualize; consolidate_stat } from  './modules/local/visualize.nf'
 include { svg_visualize } from './modules/local/svg_visualize.nf'
+include { genomePAM } from './modules/local/genomePAM.nf'
+include { chromatin_accessibility } from './modules/local/chromatin_accessibility.nf'
 
 // log.info ""
 
@@ -49,6 +53,8 @@ workflow {
     if (params.GENOME=="hg38") {
         annotate(align_identify.out.identified_offtargets)
         svg_visualize(annotate.out.annotated_offtargets)
+        genomePAM(annotate.out.annotated_offtargets)
+        chromatin_accessibility(annotate.out.annotated_offtargets)
     } else {
         svg_visualize(align_identify.out.identified_offtargets)
     }

@@ -2,7 +2,7 @@ process visualize{
     tag {meta.id}
 
     conda params.r_conda
-
+    errorStrategy 'ignore'
     input:
         tuple val(meta), path(identified_offtargets), path(umitagged_reads), path(consolidated_reads)
 

@@ -4,17 +4,23 @@ library(tidyverse)
 
 # projDir = "~/miao/GenomePam"
 # setwd(projDir)
+# Set current working directory
 
+setwd()
+#df <-read.csv("data/df.csv")
 # set 5m bins -------------------------------------------------------------
 binsize=5e6
-bin_df <- data.frame() 
+
 
 bin <- data.frame(chr = paste0("chr",c(1:22,"X","Y")), 
                   end = c(249250621,243199373,198022430,191154276,180915260,171115067,
                           159138663,146364022,141213431,135534747,135006516,133851895,
                           115169878,107349540,102531392,90354753,81195210,78077248,
                           59128983,63025520,48129895,51304566,155270560,59373566) ) %>%
-  mutate(num = ceiling(end/binsize))
+
+# redirect from off-targets table
+bin <- commandArgs(TRUE)[1]  
+mutate(num = ceiling(end/binsize))
 
 for (i in 1:nrow(bin)){
   tmp <- data.frame(chr = rep(bin$chr[i], bin$num[i]),
