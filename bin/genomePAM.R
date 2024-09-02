@@ -63,7 +63,7 @@ if (is.na(pamDir)) {
     cat("No PAM direction detected.\n")  # Output message to stdout
 }
 # Clean up spacer and PAM candidate sequences
-spacer <- sub('.*[^GCTA]', '', spacer0) # in case mixed spacers (i.e. N, W, S...) are used in one sample
+spacer <- sub('.*[^GCTA]', '', spacer0) # in case mixed spacers (i.e. N, W, S, Y...) are used in spacer head (in the first few bases over 20 nt)
 PAMcand <- sub(spacer0, '', target)
 lenPAM <- nchar(PAMcand)
 
@@ -122,6 +122,14 @@ if (nedits != 0) {
 	pam_m$enrs2 <- (pam_m$edit2 / pam_m$tot.s) / 2 / pam_m$pctg # enrich fold, by site
 	pam_m$percent <- round(pam_m$edits / pam_m$genome * 100, 2)
 	
+		# Calculation of PAM cleavage value (PCV)
+	pam_m$PCV0 <- pam_m$enrr
+	pam_m$PCV0 <- ifelse(pam_m$enrr < 0.01 | is.na(pam_m$enrr), 0.01, pam_m$enrr) # make min as 0.01
+        pam_m$PCV <- pam_m$PCV0/max(pam_m$PCV0)*100 # scale to 100
+        pam_m$PCV2 <- log2(pam_m$PCV) # log2 transformation
+        pam_m$PCV3 <- pam_m$PCV2 - min(pam_m$PCV2) # make lower boundary of log2 transformed PCV as 0, instead of negative
+        pam_m$Relative.PCV <- pam_m$PCV3/max(pam_m$PCV3) # Relative to max (1)
+
 	# Further processing and statistical analysis
 	p_cutoff <- 0.0001
 	enrsCutoff <- 1.5
@@ -272,7 +280,8 @@ print(outPAM)
 
 # Write output to files
 write.table(outPAM, paste0(LibID, '_GenomePAM.txt'), row.names = FALSE, quote = FALSE, sep = '\t')
-write.table(pam_m, paste0(LibID, '_GenomePAM_raw.txt'), row.names = FALSE, quote = FALSE, sep = '\t')
+dropVars <- c('PCV0', 'PCV2', 'PCV3')
+write.table(pam_m[, !(names(pam_m) %in% dropVars)], paste0(LibID, '_GenomePAM_raw.txt'), row.names = FALSE, quote = FALSE, sep = '\t')
 
 #=== plot GenomePAM table ===#
 
