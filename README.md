@@ -1,4 +1,4 @@
-# genomePAM
+# GenomePAM
 Nextflow pipeline to identify human PAM
 
 ## Setup
@@ -54,13 +54,27 @@ Path to input directories and corresponding parameters has to be specified in a 
 9. `xNs`: Length of 
 10. `FIXSEQ`: 
 11. `GENOME`: Path to a BWA-indexed reference genome
-12. `HGVER`: hg19 or hg38 (only tested on hg19)
+12. `AssaySpec`: Target sequence and PAM length denoted by number of Ns, seperated by underscore'
+
+#### Details on how to set AssaySpec
+For PAM values occuring on the 3' end of the spacer, the AssaySpec should be set as follows:
+```
+NNNNNNNNNN_ATCGATCGATCG
+```
+
+For PAM values occuring on the 5' end of the spacer, the AssaySpec should be set as follows:
+```
+ATCGATCGATCG_NNNNNNNNNNN
+```
+
+#### Details on how to 
 
 ### Outputs
 1. BWA alignment in BAM
 2. Table of identified offtarget sites (raw and annotated)
 3. Visualization of identified offtargets and PAM sequence logo
 4. MultiQC reports of raw FASTQ and trimmed+consolidated FASTQ
+5. GenomePAM report
 
 ### Command
 ```
