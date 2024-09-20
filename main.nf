@@ -45,9 +45,7 @@ workflow {
     // Align reads to human reference + identify off targets
     align_identify(consolidate.out.consolidated_reads)
 
-    // Join channels
-    tmp_ch = align_identify.out.identified_offtargets.join(trim_tag_umi.out.umitagged_reads)
-    joined_ch = tmp_ch.join(consolidate.out.consolidated_reads)
+
 
     // Annotate off target sites only if aligned to hg38 and annotate into svg
     if (params.GENOME=="hg38") {
@@ -58,7 +56,12 @@ workflow {
     } else {
         svg_visualize(align_identify.out.identified_offtargets)
     }
-    
+
+    // Join channels
+    tmp_ch = align_identify.out.identified_offtargets.join(trim_tag_umi.out.umitagged_reads)
+    tmp_ch2 = tmp_ch.join(genomePAM.out.genomePAM)
+    joined_ch = tmp_ch2.join(consolidate.out.consolidated_reads)
+
     //Visualize the off target sites and sequence logos
     visualize(joined_ch)
     consolidate_stat(visualize.out.count_stat.collect())

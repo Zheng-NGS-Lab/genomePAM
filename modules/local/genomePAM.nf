@@ -9,11 +9,16 @@ process genomePAM{
     output:
     path('*.html'), emit: genomePAM_html
     path('*.txt'), emit: genomePAM
-
+    path('*PCV.txt'), emit: PCV
+    
     script:
     """
     echo "[LOG] Running counts script.R..."
     ${params.r_conda}/bin/Rscript ${projectDir}/bin/genomePAM.R \
         ${identified_offtargets} ${projectDir}/resources/background_count/
+
+    ## Filter by PAMlen and Position
+    awk -F'\t' '\$4 == "${params.PAMpos}" && \$6 == "${params.PAMlen}" {print}' ${meta}_GenomePAM_raw.txt > ${meta}_PCV.txt
+
     """
 }

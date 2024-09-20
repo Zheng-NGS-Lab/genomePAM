@@ -6,7 +6,7 @@ library(tidyverse)
 # setwd(projDir)
 # Set current working directory
 
-setwd()
+setwd(getwd())
 #df <-read.csv("data/df.csv")
 # set 5m bins -------------------------------------------------------------
 binsize=5e6
