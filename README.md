@@ -1,4 +1,4 @@
-![genomePAM](resources/img/genomePAM_logo.png')
+![genomePAM](resources/img/genomePAM_logo.png)
 
 # GenomePAM
 Nextflow pipeline to identify human PAM
