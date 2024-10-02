@@ -1,4 +1,4 @@
-![genomePAM](resources/img/genomePAM logo.png')
+![genomePAM](resources/img/genomePAM_logo.png')
 
 # GenomePAM
 Nextflow pipeline to identify human PAM
@@ -75,6 +75,7 @@ ATCGATCGATCG_NNNNNNNNNNN
 1. BWA alignment in BAM
 2. Table of identified offtarget sites (raw and annotated)
 3. Visualization of identified offtargets and PAM sequence logo
+![Seqlogo](resources/img/seqlogo.png)
 4. MultiQC reports of raw FASTQ and trimmed+consolidated FASTQ
 5. GenomePAM report
 
