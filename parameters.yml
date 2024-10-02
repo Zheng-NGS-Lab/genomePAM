@@ -13,3 +13,4 @@ BWATHREADS: 4
 
 # Environment-specific parameters
 GENOME: hg38
+AssaySpec: 
