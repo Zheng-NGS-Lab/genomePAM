@@ -53,8 +53,8 @@ Path to input directories and corresponding parameters has to be specified in a 
 6. `pos1`: 
 7. `pos2`: 
 8. `posR2`: 
-9. `xNs`: Length of 
-10. `FIXSEQ`: 
+9. `xNs`: Length of N
+10. `FIXSEQ`: Fixed Sequence from NGS run
 11. `GENOME`: Path to a BWA-indexed reference genome
 12. `AssaySpec`: Target sequence and PAM length denoted by number of Ns, seperated by underscore'
 
@@ -68,8 +68,6 @@ For PAM values occuring on the 5' end of the spacer, the AssaySpec should be set
 ```
 ATCGATCGATCG_NNNNNNNNNNN
 ```
-
-#### Details on how to 
 
 ### Outputs
 1. BWA alignment in BAM
