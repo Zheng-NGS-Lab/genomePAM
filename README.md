@@ -76,6 +76,9 @@ ATCGATCGATCG_NNNNNNNNNNN
 ![Seqlogo](resources/img/seqlogo.png)
 4. MultiQC reports of raw FASTQ and trimmed+consolidated FASTQ
 5. GenomePAM report
+   - SaCas9 ![/SaCas9](resources/img/SaCas9_genomePAM.png)
+   - SpCas9 ![SpCas9](resources/img/SpCas9_genomePAM.png)
+
 
 ### Command
 ```
