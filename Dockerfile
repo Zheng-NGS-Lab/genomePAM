@@ -14,12 +14,11 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 # Add Miniconda to the PATH
 ENV PATH="/root/miniconda/bin:${PATH}"
 
-# Update Conda and install Nextflow
-RUN conda update -n base -c defaults conda
+RUN conda update -n base -c defaults conda --yes
 
-# Install Nextflow
-RUN conda install -c bioconda nextflow
-
+# Install conda packages
+RUN conda install -c bioconda bwa fastqc nextflow --yes
+RUN pip install multiqc
 # Install GUIDE-seq
 RUN git clone https://github.com/tsailabSJ/guideseq.git
 
@@ -34,8 +33,8 @@ RUN wget https://snpeff.blob.core.windows.net/versions/snpEff_latest_core.zip &&
     unzip snpEff_latest_core.zip && \
     rm snpEff_latest_core.zip
 
-# Install BWA
-RUN conda install bioconda::bwa
+# Git clone into docker container
+RUN git clone https://github.com/Zheng-NGS-Lab/genomePAM.git
 
 # Set the default command to run when the container starts
 CMD ["/bin/bash"]
