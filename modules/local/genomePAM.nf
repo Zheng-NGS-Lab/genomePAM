@@ -18,7 +18,7 @@ process genomePAM{
         ${identified_offtargets} ${projectDir}/resources/background_count/
 
     ## Filter by PAMlen and Position
-    awk -F'\t' '\$4 == "${params.PAMpos}" && \$6 == "${params.PAMlen}" {print}' ${meta}_GenomePAM_raw.txt > ${meta}_PCV.txt
+    awk -F'\t' '\$4 == "${params.PAMpos}" && \$6 == "${params.PAMlen}" {print}' ${meta.id}_GenomePAM_raw.txt > ${meta.id}_PCV.txt
 
     """
 }
