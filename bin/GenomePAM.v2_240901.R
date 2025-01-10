@@ -2,10 +2,10 @@
 # An R script to analyze and visualize the PAM sequences based on the identifiedOfftargets.txt from GUIDE-seq.
 # Only the identifiedOfftargetsFile.txt file from the GUIDE-Seq output is needed.
 # Computation steps:
-# 1. Identify the strongest single-base among the PAM bases and its position.
+# 1. Identify the strongest single base among the PAM bases and its position.
 # 2. Extend PAM bases from Position A one base towards left and one base towards right
-# 3. Calculate the difference among the extended sequences in either direction, Left and Right, respectivley and record the two P values.
-# 4. Compare the P values. The more significant one is selected as the enriched PAM and used as the basis for next round of extendsion.
+# 3. Calculate the difference among the extended sequences in either direction, Left and Right, respectively and record the two P values.
+# 4. Compare the P values. The more significant one is selected as the enriched PAM and used as the basis for the next round of extension.
 # 5. Repeat Step 2 to 4 until the ends of candidate PAM bases.
 # Usage example:
 # Rscript GenomePAM.R "/my/path/to/example/Lib001_identifiedOfftargets.txt" "/tools/repo/genomePAM/"
