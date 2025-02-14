@@ -304,8 +304,8 @@ gt_table <- df %>%
         percent_bar <- round((x[i] / max_percent) * 100, 1)
         glue::glue(
           "<div style='position: relative; height: 4px;'>
-            <div style='background-color: skyblue; height: 4px; width: {percent_bar}%;'></div> # nolint: line_length_linter.
-            <div style='position: absolute; right: 0; bottom: 0; height: 4px; line-height: 4px; z-index: 1; color: black;'>{formatted_numbers[i]}</div> # nolint: line_length_linter.
+            <div style='background-color: skyblue; height: 4px; width: {percent_bar}%;'></div>
+            <div style='position: absolute; right: 0; bottom: 0; height: 4px; line-height: 4px; z-index: 1; color: black;'>{formatted_numbers[i]}</div>
           </div>"
         )
       })
