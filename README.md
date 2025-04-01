@@ -13,6 +13,7 @@ Please install the following programs
 - BWA (https://github.com/lh3/bwa)
 - BWA-indexed reference genome (tested on GRCh37)
 - Conda
+- R
 
 
 ## Setup
