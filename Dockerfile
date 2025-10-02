@@ -20,7 +20,7 @@ RUN conda update -n base -c defaults conda --yes
 RUN conda install -c bioconda bwa fastqc nextflow --yes
 RUN pip install multiqc
 # Install GUIDE-seq
-RUN git clone https://github.com/tsailabSJ/guideseq.git
+# RUN git clone https://github.com/tsailabSJ/guideseq.git
 
 # Install BBMap
 RUN wget https://sourceforge.net/projects/bbmap/files/BBMap_39.10.tar.gz && \
