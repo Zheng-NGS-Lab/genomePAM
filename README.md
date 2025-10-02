@@ -7,7 +7,7 @@ Nextflow pipeline to identify human PAM
 Please install the following programs
 ## Pre-requisites
 - Nextflow (https://www.nextflow.io/)
-- GUIDE-seq (https://github.com/tsailabSJ/guideseq)
+- ~~GUIDE-seq (https://github.com/tsailabSJ/guideseq)~~ (The GUIDE-Seq [v1] module has been integrated into this project.)
 - BBMap (https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbmap-guide/)
 - snpEff (http://pcingola.github.io/SnpEff/)
 - BWA (https://github.com/lh3/bwa)
@@ -19,20 +19,27 @@ Please install the following programs
 ## Setup
 Please install the required programs and conda environment
 
-Conda environment YAML can be found in 
-```conda/genomePAM.yml```
-and 
-```conda/r_conda.yml```
+Conda environment YAML can be found in `conda` folder:
+
+```shell
+conda env create -f genomePAM.yml 
+```
+After `genomePAM.yml` installation and set this environment absolute path as **guide_seq_conda** config variable in `nextflow.config` file.
+```shell
+conda env create -f r_conda.yml
+```
 
 Please use BWA to index the reference genome
-```bwa index hg38.fna```
+```shell
+bwa index hg38.fna
+```
 
 ### Config
-Please change the path to BBMap, guideseq, snpEff and bwa in `nextflow.config`
+Please change the path to BBMap, snpEff and bwa in `nextflow.config`
 ```
 guide_seq_conda = "path/to/guideseq/env"
 BBMAPDIR = "/path/to/bbmap"
-GUIDESEQDIR = "/path/to/guideseq"
+GUIDESEQDIR = "$projectDir/modules/guideseq"   // Fixed, no modifications needed.
 SNPEFFDIR = "/path/to/snpEff"
 BWA = "/path/to/bwa"
 ```

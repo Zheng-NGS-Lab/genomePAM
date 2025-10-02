@@ -52,7 +52,7 @@ workflow {
         annotate(align_identify.out.identified_offtargets)
         svg_visualize(annotate.out.annotated_offtargets)
         genomePAM(annotate.out.annotated_offtargets)
-        chromatin_accessibility(annotate.out.annotated_offtargets)
+        // chromatin_accessibility(annotate.out.annotated_offtargets)
     } else {
         svg_visualize(align_identify.out.identified_offtargets)
     }
