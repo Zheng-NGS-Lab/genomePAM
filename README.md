@@ -1,94 +1,128 @@
 ![genomePAM](resources/img/genomePAM_logo.png)
 
 # GenomePAM
-Nextflow pipeline to identify human PAM
 
-## Setup
-Please install the following programs
-## Pre-requisites
-- Nextflow (https://www.nextflow.io/)
-- ~~GUIDE-seq (https://github.com/tsailabSJ/guideseq)~~ (The GUIDE-Seq [v1] module has been integrated into this project.)
-- BBMap (https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbmap-guide/)
-- snpEff (http://pcingola.github.io/SnpEff/)
-- BWA (https://github.com/lh3/bwa)
-- BWA-indexed reference genome (tested on GRCh37)
-- Conda
-- R
+Nextflow DSL2 pipeline for genome-wide PAM discovery via GUIDE-seq off-target analysis.
 
+All dependencies are containerized in a single Docker image -- no Conda environments, manual tool installations, or path configuration required.
 
-## Setup
-Please install the required programs and conda environment
+## Prerequisites
 
-Conda environment YAML can be found in `conda` folder:
+- [Docker](https://www.docker.com/) (running)
+- [Nextflow](https://www.nextflow.io/) (>= 21.10)
+- [SRA Toolkit](https://github.com/ncbi/sra-tools) (for downloading example data from NCBI SRA)
 
-```shell
-conda env create -f genomePAM.yml 
-```
-After `genomePAM.yml` installation and set this environment absolute path as **guide_seq_conda** config variable in `nextflow.config` file.
-```shell
-conda env create -f r_conda.yml
+## Quick Start
+
+```bash
+# Clone the repo
+git clone https://github.com/Zheng-NGS-Lab/genomePAM.git
+cd genomePAM
+
+# Run the pipeline (builds Docker image, downloads data, runs everything)
+bash run.sh
 ```
 
-Please use BWA to index the reference genome
-```shell
-bwa index hg38.fna
+`run.sh` handles the full workflow:
+1. Builds the Docker image (`genomepam:latest`) if not already present
+2. Downloads sample FASTQ from NCBI SRA (accession [SRR33421097](https://www.ncbi.nlm.nih.gov/sra/?term=SRR33421097))
+3. Downloads and BWA-indexes the hg38 reference genome
+4. Generates `parameters_local.yml` with absolute paths
+5. Runs the Nextflow pipeline with `-resume` support
+
+## Manual Execution
+
+If you prefer to run steps individually:
+
+### 1. Build the Docker image
+
+```bash
+docker build -t genomepam:latest .
 ```
 
-### Config
-Please change the path to BBMap, snpEff and bwa in `nextflow.config`
-```
-guide_seq_conda = "path/to/guideseq/env"
-BBMAPDIR = "/path/to/bbmap"
-GUIDESEQDIR = "$projectDir/modules/guideseq"   // Fixed, no modifications needed.
-SNPEFFDIR = "/path/to/snpEff"
-BWA = "/path/to/bwa"
-```
-Set the bwa indexed hg38's path
-```
-// Reference genomes (bwa indexed)
-hg38 = "/path/to/bwa_indexed/hg38.fna"
+### 2. Prepare data
+
+Place paired-end FASTQ files in `data/fastq/` with the naming convention `*_R1*.fastq.gz` and `*_R2*.fastq.gz`.
+
+Place a BWA-indexed hg38 reference in `data/reference/`:
+```bash
+bash scripts/setup_reference.sh
+# Or manually:
+# bwa index hg38.fa
+# samtools faidx hg38.fa
 ```
 
-## Usage
-### Inputs
-Path to input directories and corresponding parameters has to be specified in a `parameters.yml` file:
+### 3. Configure parameters
 
-1. `FQDIR`: Path to input directories containing demultiplexed pair-end FASTQ
-2. `OUTDIR`: Path to output directories
-3. `BWATHREADS`: Number of threads used in the BWA alignment step
-4. `Read1Tail`: Custom sequence added to the tail of read 1
-5. `Read2Tail`: Custom sequence added to the tail of read 2
-6. `pos1`: 
-7. `pos2`: 
-8. `posR2`: 
-9. `xNs`: Length of N
-10. `FIXSEQ`: Fixed Sequence from NGS run
-11. `GENOME`: Path to a BWA-indexed reference genome
-12. `AssaySpec`: Target sequence and PAM length denoted by number of Ns, seperated by underscore'
+Edit `parameters.yml` to match your experiment:
 
-#### Details on how to set AssaySpec
-For PAM values occuring on the 3' end of the spacer, the AssaySpec should be set as follows:
-```
-NNNNNNNNNN_ATCGATCGATCG
+| Parameter | Description |
+|-----------|-------------|
+| `FQDIR` | Path to directory containing paired-end FASTQ files |
+| `OUTDIR` | Path to output directory |
+| `GENOME` | Genome identifier (`hg38` enables annotation via snpEff) |
+| `genome_fasta` | Path to BWA-indexed reference FASTA |
+| `AssaySpec` | Target sequence and PAM: `SPACER_NNNN` (3' PAM) or `NNNN_SPACER` (5' PAM) |
+| `BWATHREADS` | Number of BWA alignment threads (default: 4) |
+| `PAMlen` | PAM length for GenomePAM analysis (default: 4) |
+| `PAMpos` | PAM position: 3 for 3' PAM, 5 for 5' PAM (default: 3) |
+
+Trimming parameters (`Read1Tail`, `Read2Tail`, `pos1`, `pos2`, `posR2`, `xNs`) have sensible defaults and typically do not need modification. `FIXSEQ` defaults to `"auto"`, which detects the conserved barcode sequence from the data at R1 positions `pos1`-`pos2`. Set `FIXSEQ` to an explicit 8-mer in `parameters.yml` to override auto-detection.
+
+### 4. Run the pipeline
+
+```bash
+nextflow run main.nf \
+    -params-file parameters_local.yml \
+    -profile local \
+    -with-report results/run_report.html \
+    -with-trace results/run_trace.txt \
+    -resume
 ```
 
-For PAM values occuring on the 5' end of the spacer, the AssaySpec should be set as follows:
+## Pipeline Processes (11 total)
+
+| Process | Description |
+|---------|-------------|
+| FASTQC_PRE | QC on raw sequencing reads |
+| MULTIQC_PRE | Aggregate pre-trim QC report |
+| trim_tag_umi | Adapter trimming (cutadapt), UMI extraction + barcode filtering (umi-tools) |
+| trim_tag_umi_autodetect | Same as trim_tag_umi but auto-detects FIXSEQ barcode from data (BBDuk) |
+| FASTQC_POST | QC on UMI-extracted reads |
+| MULTIQC_POST | Aggregate post-trim QC report |
+| align_identify | BWA alignment, umi-tools dedup, off-target identification |
+| annotate | Annotate off-target sites with snpEff (hg38 only) |
+| svg_visualize | SVG visualization of off-target sites |
+| genomePAM | PAM frequency analysis and reporting |
+| visualize | PAM sequence logos, cumulative read count plots, 4-position heatmaps |
+
+## Outputs
+
+Results are written to the `OUTDIR` directory (default: `results/`):
+
 ```
-ATCGATCGATCG_NNNNNNNNNNN
+results/
+  align_identify/     # BAM alignment, identified off-target sites
+  annotate/           # snpEff-annotated off-target table
+  svg_visualize/      # SVG off-target visualization
+  genomePAM/          # PAM discovery tables and HTML report
+  visualize/          # PAM sequence logos, heatmaps, stats CSV
+  qc/                 # Pre- and post-trim MultiQC reports
+  run_report.html     # Nextflow execution report
+  run_trace.txt       # Nextflow process trace
 ```
 
-### Outputs
-1. BWA alignment in BAM
-2. Table of identified offtarget sites (raw and annotated)
-3. Visualization of identified offtargets and PAM sequence logo
-![Seqlogo](resources/img/seqlogo.png)
-4. MultiQC reports of raw FASTQ and trimmed+consolidated FASTQ
-5. GenomePAM report
-   - SaCas9 ![/SaCas9](resources/img/SaCas9_genomePAM.png)
-   - SpCas9 ![SpCas9](resources/img/SpCas9_genomePAM.png)
+Key outputs for PAM analysis:
+- `genomePAM/*_GenomePAM_Tab.html` -- GenomePAM report (PAM frequency table)
+- `visualize/*_visualize.pdf` -- Sequence logos and cumulative read count plots
+- `visualize/*_PAM_PM_1-4.pdf` -- 4-position PAM heatmap (perfect matches)
+- `visualize/*_PAM_MM_1-4.pdf` -- 4-position PAM heatmap (mismatches)
+- `visualize/allLib_stats.csv` -- Per-library summary statistics
 
+## Changelog
 
-### Command
-```
-nextflow run main.nf -params-file parameters.yml -with-report run_report.html
-```
+See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
+
+## License
+
+See [LICENSE](LICENSE).

@@ -1,8 +1,9 @@
 from __future__ import print_function
+import csv
+import logging
+import os
 import svgwrite
 import sys
-import os
-import logging
 
 logger = logging.getLogger('root')
 logger.propagate = False
@@ -25,7 +26,6 @@ def parseSitesFile(infile):
 		for line in f:
 			line = line.rstrip('\n')
 			line_items = line.split('\t')
-			# print (line_items)
 			offtarget_reads = line_items[11]
 			no_bulge_offtarget_sequence = line_items[24]
 			bulge_offtarget_sequence = line_items[29]
@@ -60,6 +60,71 @@ def parseSitesFile(infile):
 								   })
 	return offtargets, target_seq, total_seq
 
+def exportOfftargetsCSV(offtargets, target_seq, outfile):
+	"""
+	Export offtargets data to CSV format.
+
+	Creates a CSV file with one row per sequence type (no_bulge/bulge).
+	If an offtarget has both seq and bulged_seq, two rows are created.
+
+	Args:
+		offtargets: List of offtarget dictionaries from parseSitesFile
+		target_seq: Reference target sequence
+		outfile: Output file path (CSV will be created at outfile + '.csv')
+	"""
+	csv_path = outfile + '.csv'
+	fieldnames = [
+		'sequence_type',
+		'offtarget_sequence',
+		'read_count',
+		'target_sequence',
+		'realigned_target_sequence',
+		'genomic_range',
+		'region_type',
+		'gene'
+	]
+
+	with open(csv_path, 'w', newline='') as csvfile:
+		writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+		writer.writeheader()
+
+		for offtarget in offtargets:
+			# Get common fields
+			read_count = offtarget['reads']
+			offtarget_target_seq = offtarget['target_seq']
+			realigned_target = offtarget['realigned_target_seq']
+
+			# Get annotation fields (may not be present)
+			genomic_range = offtarget.get('range', '')
+			region_type = offtarget.get('type', '')
+			gene = offtarget.get('gene', '')
+
+			# Write row for no_bulge sequence if present
+			if offtarget['seq'] != '':
+				writer.writerow({
+					'sequence_type': 'no_bulge',
+					'offtarget_sequence': offtarget['seq'],
+					'read_count': read_count,
+					'target_sequence': offtarget_target_seq,
+					'realigned_target_sequence': '',
+					'genomic_range': genomic_range,
+					'region_type': region_type,
+					'gene': gene
+				})
+
+			# Write row for bulge sequence if present
+			if offtarget['bulged_seq'] != '':
+				writer.writerow({
+					'sequence_type': 'bulge',
+					'offtarget_sequence': offtarget['bulged_seq'],
+					'read_count': read_count,
+					'target_sequence': offtarget_target_seq,
+					'realigned_target_sequence': realigned_target,
+					'genomic_range': genomic_range,
+					'region_type': region_type,
+					'gene': gene
+				})
+
 # 3/6/2020
 def check_mismatch(a,b):
 	from Bio.Data import IUPACData
@@ -85,6 +150,9 @@ def visualizeOfftargets(infile, outfile, title, spacer, PAM):
 	offtargets, target_seq, total_seq = parseSitesFile(infile)
 	if target_seq is None:
 		target_seq = spacer
+
+	# Export CSV data
+	exportOfftargetsCSV(offtargets, target_seq, outfile)
 
 	# Initiate canvas
 	dwg = svgwrite.Drawing(outfile + '.svg', profile='full', size=(u'100%', 100 + total_seq*(box_size + 1)))

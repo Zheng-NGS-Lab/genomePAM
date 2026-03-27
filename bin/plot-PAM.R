@@ -5,14 +5,13 @@ library(ggplot2)
 library(patchwork)
 
 # Example:
-#	Rscript plot-PAM.R Lib001_identifiedOfftargets.txt GAGCCACCATGCCTGGCCAA GAGCCACCATGCCTGGCCAANNNNNN <umitagged_read_count> <consolidated_read_count>
+#	Rscript plot-PAM.R Lib001_identifiedOfftargets.txt GAGCCACCATGCCTGGCCAA GAGCCACCATGCCTGGCCAANNNNNN LibID <umitagged_read_count>
 
 IdentifiedOfftargetFile = commandArgs(TRUE)[1]
 spacer = commandArgs(TRUE)[2]
 target = commandArgs(TRUE)[3]
 LibID = commandArgs(TRUE)[4]
 umitagged_count = commandArgs(TRUE)[5]
-consolidated_count = commandArgs(TRUE)[6]
 
 d1 = read.table(IdentifiedOfftargetFile, sep='\t', stringsAsFactors=F, colClasses=c("character"), comment.char="", header=T, fill=TRUE)
     head(d1,3)
@@ -33,7 +32,7 @@ pd_MM = subset(pd, Site_SubstitutionsOnly.NumSubstitutions>0)
 # Initialize cumulative alignment read counts
 colors <- c("PM" = "#742554", "MM" = "darkgrey")
 p_cum <- ggplot() +
-    labs(title=paste0(LibID, ": Cumulative alignments' read counts"), x="Site #", y="Aligment count (cumulative)", color="Legend", subtitle = paste0("Umitagged read count: ", umitagged_count, "; Unique read count: ", consolidated_count)) + 
+    labs(title=paste0(LibID, ": Cumulative alignments' read counts"), x="Site #", y="Aligment count (cumulative)", color="Legend", subtitle = paste0("UMI-tagged read count: ", umitagged_count)) +
     scale_color_manual(values = colors)
 
 if (nrow(pd_MM)==0 & nrow(pd_PM)==0){
@@ -43,8 +42,9 @@ if (nrow(pd_MM)==0 & nrow(pd_PM)==0){
 # Mismatch
 if (nrow(pd_MM) !=0){
     rownames(pd_MM) <- 1:nrow(pd_MM)
+    pd_MM$bi.sum.mi <- as.numeric(pd_MM$bi.sum.mi)
     # Cumulative alignment read counts
-    p_cum <- p_cum + 
+    p_cum <- p_cum +
         geom_point(data=pd_MM, aes(x=as.numeric(rownames(pd_MM)), y=cumsum(bi.sum.mi), color="MM"), size = 1.8) + 
         geom_line(data=pd_MM, aes(x=as.numeric(rownames(pd_MM)), y=cumsum(bi.sum.mi), color="MM", group = 1), size = 1.2)    
     
@@ -65,8 +65,9 @@ if (nrow(pd_MM) !=0){
 # Perfect match
 if (nrow(pd_PM) !=0){
     rownames(pd_PM) <- 1:nrow(pd_PM)
+    pd_PM$bi.sum.mi <- as.numeric(pd_PM$bi.sum.mi)
     # Cumulative alignment read counts
-    p_cum <- p_cum + 
+    p_cum <- p_cum +
         geom_point(data=pd_PM, aes(x=as.numeric(rownames(pd_PM)), y=cumsum(bi.sum.mi), color="PM"), size = 1.8) + 
         geom_line(data=pd_PM, aes(x=as.numeric(rownames(pd_PM)), y=cumsum(bi.sum.mi), color="PM", group = 1), size = 1.2) 
     
@@ -102,7 +103,7 @@ ggsave(paste0(LibID, '_visualize.pdf'), width=8, height=plot_height)
 
 #####Export read stats in CSV
 stat_csv <- paste0('.', LibID, '_stats.csv')
-# header <- c("LibID", "Umitagged_read_count", "Unique_read_count", "PM_n_reads", "PM_n_sites", "MM_n_reads", "MM_n_sites")
-stats <- c(LibID, umitagged_count, consolidated_count, n.reads_PM, n.sites_PM, n.reads_MM, n.sites_MM)
+# header <- c("LibID", "Umitagged_read_count", "PM_n_reads", "PM_n_sites", "MM_n_reads", "MM_n_sites")
+stats <- c(LibID, umitagged_count, n.reads_PM, n.sites_PM, n.reads_MM, n.sites_MM)
 # write(paste(header, collapse = ","), file=stat_csv, append=F)
 write(paste(stats, collapse = ","), file=stat_csv, append=T)

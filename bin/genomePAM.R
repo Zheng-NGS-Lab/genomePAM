@@ -39,14 +39,6 @@ target <- d1$TargetSequence[1]
 spacer0 <- sub('N{2,}', '', target)
 
 # Determine PAM direction and extract PAM sequence
-# if (substr(target, 1, nchar(spacer0)) == spacer0) {
-#     pamDir <- 3
-#     d1$pam <- substr(d1$Site_SubstitutionsOnly.Sequence, 1 + nchar(spacer0), nchar(target)) # 3' PAM
-# } else {
-#     pamDir <- 5
-#     d1$pam <- substr(d1$Site_SubstitutionsOnly.Sequence, 1, nchar(target) - nchar(spacer0)) # 5' PAM
-# }
-# Catch error if no PAM is detected in the spacer
 if (nchar(spacer0) > 0) {
     if (substr(target, 1, nchar(spacer0)) == spacer0) {
         pamDir <- 3
@@ -79,7 +71,8 @@ d2$PMMM <- ifelse(d2$Site_SubstitutionsOnly.NumSubstitutions == 0, 'PM',
 
 # Subset data based on match type
 dataPM <- subset(d2, PMMM == 'PM')
-nReads_PM = sum(as.numeric(dataPM$bi.sum.mi))
+dataPM$bi.sum.mi <- as.numeric(dataPM$bi.sum.mi)
+nReads_PM = sum(dataPM$bi.sum.mi)
 nedits <- nrow(dataPM)
 
 if (nedits != 0) {

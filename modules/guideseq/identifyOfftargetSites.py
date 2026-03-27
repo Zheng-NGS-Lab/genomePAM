@@ -296,26 +296,28 @@ def analyze(sam_filename, reference_genome, outfile, annotations, windowsize, ma
 		os.makedirs(output_folder)
 
 	logger.info("Processing SAM file %s", sam_filename)
-	file = open(sam_filename, 'rU')
 	__, filename_tail = os.path.split(sam_filename)
 	chromosome_position = chromosomePosition(reference_genome)
-	for line in file:
-		fields = line.split('\t')
-		if len(fields) >= 10:
-			# These are strings--need to be cast as ints for comparisons.
-			full_read_name, sam_flag, chromosome, position, mapq, cigar, name_of_mate, position_of_mate, template_length, read_sequence, read_quality = fields[:11]
-			if int(mapq) >= 50 and int(sam_flag) & 128 and not int(sam_flag) & 2048:
-				# Second read in pair
-				barcode, count = parseReadName(full_read_name, umi_len, idx_len)
-				primer = assignPrimerstoReads(read_sequence, sam_flag)
-				if int(template_length) < 0:  # Reverse read
-					read_position = int(position_of_mate) + abs(int(template_length)) - 1
-					strand = "-"
-					chromosome_position.addPositionBarcode(chromosome, read_position, strand, barcode, primer, count)
-				elif int(template_length) > 0:  # Forward read
-					read_position = int(position)
-					strand = "+"
-					chromosome_position.addPositionBarcode(chromosome, read_position, strand, barcode, primer, count)
+	with open(sam_filename, 'r') as sam_file:
+		for line in sam_file:
+			fields = line.split('\t')
+			if len(fields) >= 10:
+				# These are strings--need to be cast as ints for comparisons.
+				full_read_name, sam_flag, chromosome, position, mapq, cigar, name_of_mate, position_of_mate, template_length, read_sequence, read_quality = fields[:11]
+				if int(mapq) >= 50 and int(sam_flag) & 128 and not int(sam_flag) & 2048:
+					# Second read in pair
+					barcode, count = parseReadName(full_read_name, umi_len, idx_len)
+					if barcode is None:
+						continue
+					primer = assignPrimerstoReads(read_sequence, sam_flag)
+					if int(template_length) < 0:  # Reverse read
+						read_position = int(position_of_mate) + abs(int(template_length)) - 1
+						strand = "-"
+						chromosome_position.addPositionBarcode(chromosome, read_position, strand, barcode, primer, count)
+					elif int(template_length) > 0:  # Forward read
+						read_position = int(position)
+						strand = "+"
+						chromosome_position.addPositionBarcode(chromosome, read_position, strand, barcode, primer, count)
 
 	# Generate barcode position summary
 	stacked_summary = chromosome_position.SummarizeBarcodePositions()
@@ -373,8 +375,6 @@ def analyze(sam_filename, reference_genome, outfile, annotations, windowsize, ma
 
 				if not (chosen_alignment_strand_m or chosen_alignment_strand_b):
 					BED_chromosome, BED_score, BED_name = [""] * 3
-				# print ("BED_name",BED_name)
-				# print ("annotation",annotation)
 				output_row = row[4:8] + [filename_tail] + row[0:4] + row[8:] + \
 							 [str(BED_name), BED_score, BED_chromosome,
 											  offtarget_sequence_no_bulge, mismatches, chosen_alignment_strand_m,
@@ -386,10 +386,6 @@ def analyze(sam_filename, reference_genome, outfile, annotations, windowsize, ma
 				output_row = [str(x) for x in row[4:8] + [filename_tail] + row[0:4] + row[8:] + [""] * 17 + annotation + ['none']]
 
 			if non_bulged_target_start_absolute != '' or bulged_target_start_absolute != '':
-				# print ("non_bulged_target_start_absolute",non_bulged_target_start_absolute)
-				# print ("bulged_target_start_absolute",bulged_target_start_absolute)
-				# print ("non_bulged_target_end_absolute",non_bulged_target_end_absolute)
-				# print ("bulged_target_end_absolute",bulged_target_end_absolute)
 				output_row_key = '{0}_{1}_{2}'.format(window_chromosome, py2min([non_bulged_target_start_absolute, bulged_target_start_absolute]), py2max([non_bulged_target_end_absolute, bulged_target_end_absolute]))
 			else:
 				output_row_key = '{0}_{1}_{2}'.format(window_chromosome, window_start, window_end)
@@ -426,7 +422,7 @@ def assignPrimerstoReads(read_sequence, sam_flag):
 
 
 def loadFileIntoArray(filename):
-	with open(filename, 'rU') as f:
+	with open(filename, 'r') as f:
 		keys = f.readline().rstrip('\r\n').split('\t')[1:]
 		data = collections.defaultdict(dict)
 		for line in f:
@@ -437,13 +433,29 @@ def loadFileIntoArray(filename):
 
 
 def parseReadName(read_name,umi_len,idx_len):
-#	m = re.search(r'([ACGTN]{%d}_[ACGTN]{%d}_[ACGTN]{%d})_([0-9]*)' % (umi_len,idx_len,idx_len), read_name)
-	m = re.search(r'([ACGTN0-9]+_[ACGTN]+_[ACGTN]+)_([0-9]*)', read_name)
+	"""
+	Parse read name to extract UMI.
+
+	After umi-tools deduplication, reads are in format: READID_UMI 1:N:0:0
+	The UMI is appended to the read name as a single concatenated token (no internal underscores).
+	Since deduplication already removed duplicates, count is always 1.
+
+	Args:
+		read_name: Read identifier with appended UMI
+		umi_len: Not used (kept for compatibility)
+		idx_len: Not used (kept for compatibility)
+
+	Returns:
+		tuple: (umi, count) where count is always 1 after deduplication
+	"""
+	# Match umi-tools format: READID_UMI where UMI is concatenated barcode+r1head+r2head
+	# Use $ anchor since read_name is the QNAME field (no trailing whitespace after tab-split)
+	m = re.search(r'_([ACGTN]+)$', read_name)
 	if m:
-		molecular_index, count = m.group(1), m.group(2)
-		return molecular_index, int(count)
+		umi = m.group(1)
+		# Count is always 1 since umi-tools already deduplicated
+		return umi, 1
 	else:
-		# print read_name
 		return None, None
 
 
