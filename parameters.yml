@@ -1,16 +1,33 @@
-# Assay-specific parameters
-FQDIR: 
-OUTDIR: 
+# genomePAM Pipeline Parameters
+# See README.md for details on each parameter
 
-Read1Tail: AGATCGGAAGAGCACACGTC
-Read2Tail: AGATCGGAAGAGCGTCGTGT
-pos1: 11
-pos2: 18
-posR2: 8
-xNs: NNNNNNNNNN
-FIXSEQ: AGTGACAC
+# Input/Output paths (use absolute paths)
+FQDIR: "data/fastq"
+OUTDIR: "results"
+
+# Reference genome (BWA-indexed FASTA, must be absolute path)
+GENOME: "hg38"
+genome_fasta: "data/reference/hg38.fa"
+# NOTE: run.sh generates a parameters_local.yml with absolute paths.
+# If running manually, replace the paths above with absolute paths.
+
+# Target sequence and PAM
+# Format: SPACER_NNNN (3' PAM) or NNNN_SPACER (5' PAM)
+# SpCas9 NGG, target: GTGAGCCACTGTGCCTGGCC
+AssaySpec: "GTGAGCCACTGTGCCTGGCC_NNNNNNNNNN"
+
+# Alignment
 BWATHREADS: 4
 
-# Environment-specific parameters
-GENOME: hg38
-AssaySpec: 
+# Trimming parameters (defaults usually fine)
+# Read1Tail: "AGATCGGAAGAGCACACGTC"
+# Read2Tail: "AGATCGGAAGAGCGTCGTGT"
+# pos1: 11
+# pos2: 18
+# posR2: 8
+# xNs: "NNNNNNNNNN"
+# FIXSEQ: "auto"  # auto-detects from data; set explicitly to override
+
+# GenomePAM analysis
+PAMlen: 4
+PAMpos: 3

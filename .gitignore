@@ -1,3 +1,47 @@
-example*
+# Nextflow
+work/
 .nextflow*
 *.log
+pipeline_run.log
+
+# Data (reference genome, FASTQ -- too large for git)
+data/
+!tests/data/
+
+# Large binary outputs
+*.bam
+*.bam.bai
+
+# Local parameters (contains machine-specific paths)
+parameters_local.yml
+parameters_*_local.yml
+
+# Pipeline run outputs
+results/
+results_*/
+
+# Vendored dependencies
+UMI-tools/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Claude Code
+.claude/
+CLAUDE.md
+
+# Misc
+example*
+.pytest_cache/

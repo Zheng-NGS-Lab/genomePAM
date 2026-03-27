@@ -16,7 +16,7 @@ def get_args():
     parser.add_argument('--pos2', metavar='', default=18, help='(Optional) pos2')
     parser.add_argument('--posR2', metavar='', default=8, help='(Optional) posR2')
     parser.add_argument('--xNs', metavar='', default='NNNNNNNNNN', help='(Optional) xNs')
-    parser.add_argument('--FIXSEQ', metavar='', default='AGTGACAC', help='(Optional) FIXSEQ')
+    parser.add_argument('--FIXSEQ', metavar='', default='auto', help='(Optional) FIXSEQ barcode for filtering; "auto" detects from data')
     parser.add_argument('--BWATHREADS', metavar='', default=4, help='(Optional) Threads for BWA')
     parser.add_argument('--GENOME', metavar='', default='/data2/database/reference_genome/human/GRCh38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna', help='(Optional) Human reference genome')
     parser.add_argument('--HGVER', metavar='', default='hg38', help='(Optional) Human genome ver')

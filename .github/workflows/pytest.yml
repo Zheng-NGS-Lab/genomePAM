@@ -1,0 +1,51 @@
+name: Python Tests
+
+on:
+  push:
+    paths:
+      - 'modules/guideseq/**/*.py'
+      - 'tests/**/*.py'
+      - 'pyproject.toml'
+      - 'Dockerfile'
+      - '.github/workflows/pytest.yml'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'modules/guideseq/**/*.py'
+      - 'tests/**/*.py'
+      - 'pyproject.toml'
+      - 'Dockerfile'
+      - '.github/workflows/pytest.yml'
+
+jobs:
+  test:
+    name: Run pytest in Docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: genomepam:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run tests
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/app" \
+            -w /app \
+            genomepam:test \
+            bash -c "pip install --no-cache-dir pytest && pytest tests/ -v --tb=short"

@@ -16,7 +16,7 @@ cat('runDate: ', runDate)
 
     plot_4_PAM_pos = function(IdentifiedOfftargetsFile, runDate){
 	LibID=sub("_identifiedOfftargets.*", "", sub(".*/","",IdentifiedOfftargetsFile)); cat("LibID: ", LibID, "\n")
-	d1 = read.table(IdentifiedOfftargetsFile, sep='\t', stringsAsFactors=F, colClasses = c("character"), comment.char = "", header=T)
+	d1 = read.table(IdentifiedOfftargetsFile, sep='\t', stringsAsFactors=F, colClasses = c("character"), comment.char = "", header=T, fill=TRUE)
 	target=d1$TargetSequence[1]
 	spacer=sub('N{2,}', '', target)
 	PAMcand=sub(spacer,'', target)
@@ -33,6 +33,7 @@ cat('runDate: ', runDate)
 		dataPMMM = subset(d2, PMMM==mType)
 		nsites = nrow(dataPMMM)
 		if (nsites !=0){
+		    dataPMMM$bi.sum.mi <- as.numeric(dataPMMM$bi.sum.mi)
 		    pos_start = 1; pos_pam = NA; pam_d=NA;  peak=1;
 		    for (i in 1:(lenPAM-3)){
 			    pam_i = c(rep(substr(dataPMMM$pam, i, i+3), dataPMMM$bi.sum.mi))

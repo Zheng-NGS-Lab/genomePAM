@@ -1,8 +1,6 @@
 process MULTIQC {
     label 'process_medium'
 
-    conda params.guide_seq_conda
-
     input:
     path multiqc_files
 

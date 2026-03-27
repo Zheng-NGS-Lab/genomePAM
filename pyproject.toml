@@ -1,0 +1,7 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "requires_htseq: test requires HTSeq (only available in Docker container)",
+    "integration: integration tests exercising multi-module interactions",
+    "docker: tests requiring Docker container tools (bbduk, agrep, umi-tools)",
+]

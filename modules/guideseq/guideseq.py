@@ -20,10 +20,15 @@ logger = log.createCustomLogger('root')
 
 from alignReads import alignReads
 from filterBackgroundSites import filterBackgroundSites
-from umi import demultiplex, umitag, consolidate
 from visualization import visualizeOfftargets
 import identifyOfftargetSites
 import validation
+
+from umi import demultiplex
+try:
+	from umi import consolidate
+except ImportError:
+	consolidate = None
 
 DEFAULT_DEMULTIPLEX_MIN_READS = 10000
 DEFAULT_WINDOW_SIZE = 25
@@ -114,7 +119,6 @@ class GuideSeq:
         logger.info('Successfully loaded manifest for single-step demultiplexing.')
 
     def demultiplex(self):
-
         logger.info('Demultiplexing undemultiplexed files...')
 
         # Take our two barcodes and concatenate them
@@ -148,31 +152,9 @@ class GuideSeq:
             logger.error(traceback.format_exc())
             quit()
 
-    def umitag(self):
-        logger.info('umitagging reads...')
-
-        try:
-            self.umitagged = {}
-            for sample in self.samples:
-                self.umitagged[sample] = {}
-                self.umitagged[sample]['read1'] = os.path.join(self.output_folder, 'umitagged', sample + '.r1.umitagged.fastq')
-                self.umitagged[sample]['read2'] = os.path.join(self.output_folder, 'umitagged', sample + '.r2.umitagged.fastq')
-
-                umitag.umitag(self.demultiplexed[sample]['read1'],
-                              self.demultiplexed[sample]['read2'],
-                              self.demultiplexed[sample]['index1'],
-                              self.demultiplexed[sample]['index2'],
-                              self.umitagged[sample]['read1'],
-                              self.umitagged[sample]['read2'],
-                              os.path.join(self.output_folder, 'umitagged'))
-
-            logger.info('Successfully umitagged reads.')
-        except Exception as e:
-            logger.error('Error umitagging')
-            logger.error(traceback.format_exc())
-            quit()
-
     def consolidate(self, min_freq=CONSOLIDATE_MIN_FREQ, min_qual=CONSOLIDATE_MIN_QUAL):
+        if consolidate is None:
+            raise ImportError('consolidate module is not available (umi/consolidate.py was removed)')
         logger.info('Consolidating reads...')
 
         try:
@@ -311,13 +293,6 @@ def parse_args():
     demultiplex_parser = subparsers.add_parser('demultiplex', help='Demultiplex undemultiplexed FASTQ files')
     demultiplex_parser.add_argument('--manifest', '-m', help='Specify the manifest path', required=True)
 
-    umitag_parser = subparsers.add_parser('umitag', help='UMI tag demultiplexed FASTQ files for consolidation')
-    umitag_parser.add_argument('--read1', required=True)
-    umitag_parser.add_argument('--read2', required=True)
-    umitag_parser.add_argument('--index1', required=True)
-    umitag_parser.add_argument('--index2', required=True)
-    umitag_parser.add_argument('--outfolder', required=True)
-
     consolidate_parser = subparsers.add_parser('consolidate', help='Consolidate UMI tagged FASTQs')
     consolidate_parser.add_argument('--read1', required=True)
     consolidate_parser.add_argument('--read2', required=True)
@@ -412,7 +387,6 @@ def main():
                     # g.aligned[sample] = os.path.join(g.output_folder, 'aligned', sample + '.sam')
 
 
-                g.umitag()
                 g.consolidate()
                 g.alignReads()
                 g.identifyOfftargetSites()
@@ -427,7 +401,6 @@ def main():
             g = GuideSeq()
             g.parseManifest(args.manifest)
             g.demultiplex()
-            g.umitag()
             g.consolidate()
             g.alignReads()
             g.identifyOfftargetSites()
@@ -441,22 +414,6 @@ def main():
         g = GuideSeq()
         g.parseManifestDemultiplex(args.manifest)
         g.demultiplex()
-
-    elif args.command == 'umitag':
-        """
-        Run just the umitag step
-        python guideseq/guideseq.py umitag --read1 test/data/demultiplexed/EMX1.r1.fastq --read2 test/data/demultiplexed/EMX1.r2.fastq --index1 test/data/demultiplexed/EMX1.i1.fastq --index2 test/data/demultiplexed/EMX1.i2.fastq --outfolder test/output/
-        """
-        g = GuideSeq()
-        g.output_folder = args.outfolder
-        sample = os.path.basename(args.read1).split('.')[0]
-        g.samples = [sample]
-        g.demultiplexed = {sample: {}}
-        g.demultiplexed[sample]['read1'] = args.read1
-        g.demultiplexed[sample]['read2'] = args.read2
-        g.demultiplexed[sample]['index1'] = args.index1
-        g.demultiplexed[sample]['index2'] = args.index2
-        g.umitag()
 
     elif args.command == 'consolidate':
         """

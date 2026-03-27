@@ -1,41 +1,54 @@
-# hash:sha256:455cbd41a0b28348f392b6a7a868b0cdfa5fe06bfcc79e4cbe9b3abc0c2eb501
-FROM registry.codeocean.com/codeocean/ubuntu:20.04.2
+FROM condaforge/mambaforge:latest
 
-RUN apt-get update && apt-get install -y \
-    wget \
-    git \
-    unzip \
-    build-essential \
-    bzip2
+LABEL maintainer="genomePAM pipeline"
+LABEL description="All-in-one container for the genomePAM CRISPR PAM discovery pipeline"
 
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
-    bash miniconda.sh -b -p $HOME/miniconda && \
-    rm miniconda.sh
-# Add Miniconda to the PATH
-ENV PATH="/root/miniconda/bin:${PATH}"
+# System dependencies: agrep (approximate grep), gawk, bc, procps (for ps command)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    tre-agrep \
+    gawk \
+    bc \
+    procps \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -sf /usr/bin/tre-agrep /usr/bin/agrep
 
-RUN conda update -n base -c defaults conda --yes
+# Bioinformatics tools, Python, and R in a single solve
+RUN mamba install -y -c bioconda -c conda-forge -c defaults \
+    bwa \
+    samtools \
+    bbmap=39.10 \
+    fastqc=0.12.1 \
+    snpeff \
+    cutadapt \
+    umi_tools \
+    python=3.10 \
+    biopython \
+    pyfaidx \
+    pysam \
+    htseq \
+    regex \
+    svgwrite \
+    pandas \
+    numpy \
+    scipy \
+    pyyaml \
+    r-base=4.3 \
+    r-ggplot2 \
+    r-ggseqlogo \
+    r-patchwork \
+    r-plyr \
+    r-gt \
+    r-dplyr \
+    r-stringr \
+    r-readr \
+    r-purrr \
+    r-glue \
+    pip \
+    && pip install --no-cache-dir multiqc \
+    && mamba clean -a -y
 
-# Install conda packages
-RUN conda install -c bioconda bwa fastqc nextflow --yes
-RUN pip install multiqc
-# Install GUIDE-seq
-# RUN git clone https://github.com/tsailabSJ/guideseq.git
+# Download snpEff hg38 database (needed for annotation step)
+RUN snpEff download -v hg38
 
-# Install BBMap
-RUN wget https://sourceforge.net/projects/bbmap/files/BBMap_39.10.tar.gz && \
-    tar -xzvf BBMap_39.10.tar.gz && \
-    rm BBMap_39.10.tar.gz && \
-    mv bbmap /usr/local/bin
-
-# Install snpEff
-RUN wget https://snpeff.blob.core.windows.net/versions/snpEff_latest_core.zip && \
-    unzip snpEff_latest_core.zip && \
-    rm snpEff_latest_core.zip
-
-# Git clone into docker container
-RUN git clone https://github.com/Zheng-NGS-Lab/genomePAM.git
-
-# Set the default command to run when the container starts
+WORKDIR /app
 CMD ["/bin/bash"]
-ARG DEBIAN_FRONTEND=noninteractive
