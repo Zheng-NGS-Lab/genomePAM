@@ -23,9 +23,9 @@ process trim_tag_umi{
     agrep -2 ${params.FIXSEQ} _barcodes | head -n 10 | sed 's/^/FIXSEQ /' > _2_mismatch
 
     # get mi
-    echo | awk -v pos1=${params.pos1} -v pos2=${params.pos2} -v xNs=${params.xNs} 'NR==FNR {a[\$2]=\$1; next} {
+    echo | awk -v pos1=${params.pos1} -v pos2=${params.pos2} -v xNs=${params.xNs} -v FIXSEQ=${params.FIXSEQ} -v posR2=${params.posR2} 'NR==FNR {a[\$2]=\$1; next} {
         if (FNR%4==2) { mi = substr(\$1, 1, pos1-1);
-            bc = substr(\$1, pos1, ${params.posR2});
+            bc = substr(\$1, pos1, posR2);
             if (length(mi)==0){mi=xNs};
             if (length(bc)==0){bc=xNs};
             if (bc in a) {\$1=":umi:"mi" "a[bc]
@@ -41,7 +41,7 @@ process trim_tag_umi{
         paste _R1.nolinker.fastq _I2 | tr ' ' '\t' | cut -f 1,3,4 > _R1_I2
     elif [[ \$field_num -eq 1 ]]; then
         # For BGI platform
-        paste _R1.nolinker.fastq _I2 | tr -s ' ' | tr ' ' '	' | cut -f 1,2,3 > _R1_I2
+        paste _R1.nolinker.fastq _I2 | tr -s ' ' | tr ' ' '\t' | cut -f 1,2,3 > _R1_I2
     fi
     awk '{if (NF == 3) {print \$0} else {print \$1}}' _R1_I2 > _R1.I2.fastq
     ## trimed Read1
@@ -61,7 +61,7 @@ process trim_tag_umi{
         # For Illumina platform
         paste _R2.trmr1.fastq _I2 | tr ' ' '\t' | cut -f 1,3,4 > _R2_I2
     elif [[ \$field_num -eq 1 ]]; then
-        paste _R2.trmr1.fastq _I2 | tr -s ' ' | tr ' ' '	' | cut -f 1,2,3 > _R2_I2
+        paste _R2.trmr1.fastq _I2 | tr -s ' ' | tr ' ' '\t' | cut -f 1,2,3 > _R2_I2
     fi
     awk '{if (NF == 3) {print \$0} else {print \$1}}' _R2_I2 > _R2.I2.fastq
     paste - - - - < _R2.I2.fastq | grep -P "\tFIXSEQ" | cut -f 1,2,4,5,6 | sed 's/\t/:/' | tr '\t' '\n' > _pre.R2.fq

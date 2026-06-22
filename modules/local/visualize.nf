@@ -1,7 +1,7 @@
 process visualize{
     tag {meta.id}
 
-    conda params.r_conda
+    conda params.guide_seq_conda
     errorStrategy 'ignore'
     input:
         tuple val(meta), path(identified_offtargets), path(umitagged_reads), path(consolidated_reads)
@@ -33,7 +33,7 @@ process visualize{
 
     # Run plot-PAM.R for visualization
     echo "[LOG] Running plot-PAM.R..."
-    ${params.r_conda}/bin/Rscript ${projectDir}/bin/plot-PAM.R \
+    ${params.guide_seq_conda}/bin/Rscript ${projectDir}/bin/plot-PAM.R \
         ${identified_offtargets} \
         \$TargetSeq_noPAM \
         \$TargetSeq \
@@ -42,8 +42,8 @@ process visualize{
     # Run plot-PAM_pos4.R to visualize the combinations
     echo "[LOG] Running plot-PAM_pos4.R..."
     run_date=\$(date "+%Y%m%d")
-    
-    ${params.r_conda}/bin/Rscript ${projectDir}/bin/plot-PAM_pos4.R \
+
+    ${params.guide_seq_conda}/bin/Rscript ${projectDir}/bin/plot-PAM_pos4.R \
         ${identified_offtargets} \$run_date
         
     echo "[LOG] Running counts script.R..."

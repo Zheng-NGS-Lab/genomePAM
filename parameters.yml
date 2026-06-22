@@ -4,9 +4,9 @@ OUTDIR:
 
 Read1Tail: AGATCGGAAGAGCACACGTC
 Read2Tail: AGATCGGAAGAGCGTCGTGT
-pos1: 11
-pos2: 18
-posR2: 8
+pos1: 11  # FIXSEQ start position (1-based) , It is also equal to UMI length + 1
+pos2: 18  # UMI length + FIXSEQ length
+posR2: 8  # FIXSEQ length
 xNs: NNNNNNNNNN
 FIXSEQ: AGTGACAC
 BWATHREADS: 4

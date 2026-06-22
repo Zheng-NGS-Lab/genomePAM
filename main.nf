@@ -59,8 +59,8 @@ workflow {
 
     // Join channels
     tmp_ch = align_identify.out.identified_offtargets.join(trim_tag_umi.out.umitagged_reads)
-    tmp_ch2 = tmp_ch.join(genomePAM.out.genomePAM)
-    joined_ch = tmp_ch2.join(consolidate.out.consolidated_reads)
+    // tmp_ch2 = tmp_ch.join(genomePAM.out.genomePAM)
+    joined_ch = tmp_ch.join(consolidate.out.consolidated_reads)
 
     //Visualize the off target sites and sequence logos
     visualize(joined_ch)
