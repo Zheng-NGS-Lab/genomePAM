@@ -1,7 +1,7 @@
 process svg_visualize{
     tag {meta.id}
 
-    conda params.guide_seq_conda
+    conda params.genomePAM
 
     input:
         tuple val(meta), path(offtargets)
@@ -12,7 +12,7 @@ process svg_visualize{
     script:
     """
     # Add GUIDEseq env bin to PATH
-    PATH=${params.guide_seq_conda}/bin:\$PATH
+    PATH=${params.genomePAM}/bin:\$PATH
     
     #####Get TargetSeq and PAM from sample info CSV
     TargetSeq=\$(echo "${params.AssaySpec}"| tr '[:lower:]' '[:upper:]'|sed 's/_//g')

@@ -1,7 +1,7 @@
 process annotate{
     tag {meta.id}
 
-    conda params.guide_seq_conda
+    conda params.genomePAM
 
     input:
     tuple val(meta), path(identified_offtargets)

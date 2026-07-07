@@ -2,7 +2,7 @@ process FASTQC {
     tag "$meta.id"
     label 'process_medium'
 
-    conda params.guide_seq_conda
+    conda params.genomePAM
 
     input:
     tuple val(meta), path(reads)

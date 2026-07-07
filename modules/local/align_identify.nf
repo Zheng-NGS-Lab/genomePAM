@@ -1,7 +1,7 @@
 process align_identify{
     tag {meta.id}
 
-    conda params.guide_seq_conda
+    conda params.genomePAM
 
     input:
     tuple val(meta), path(consolidated_reads)
@@ -17,7 +17,7 @@ process align_identify{
     script:
     """
     # Add GUIDEseq env bin to PATH
-    PATH=${params.guide_seq_conda}/bin:\$PATH
+    PATH=${params.genomePAM}/bin:\$PATH
     
     #####Main
     TargetSeq=\$(echo "${params.AssaySpec}"| tr '[:lower:]' '[:upper:]'|sed 's/_//g')

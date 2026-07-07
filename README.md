@@ -11,7 +11,7 @@ Please install the following programs
 - BBMap (https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbmap-guide/)
 - snpEff (http://pcingola.github.io/SnpEff/)
 - BWA (https://github.com/lh3/bwa)
-- BWA-indexed reference genome (tested on GRCh37)
+- BWA-indexed reference genome
 - Conda
 - R
 
@@ -24,20 +24,24 @@ Conda environment YAML can be found in `conda` folder:
 ```shell
 conda env create -f genomePAM.yml 
 ```
-After `genomePAM.yml` installation and set this environment absolute path as **guide_seq_conda** config variable in `nextflow.config` file.
+
 ```shell
 conda env create -f r_conda.yml
 ```
 
 Please use BWA to index the reference genome
 ```shell
+wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
+mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz hg38.fna.gz
+gunzip hg38.fna.gz
 bwa index hg38.fna
 ```
 
 ### Config
 Please change the path to BBMap, snpEff and bwa in `nextflow.config`
 ```
-guide_seq_conda = "path/to/guideseq/env"
+r_conda = "/path/to/env/r_conda"
+genomePAM = "/path/to/env/genomePAM"
 BBMAPDIR = "/path/to/bbmap"
 GUIDESEQDIR = "$projectDir/modules/guideseq"   // Fixed, no modifications needed.
 SNPEFFDIR = "/path/to/snpEff"
