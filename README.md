@@ -71,14 +71,14 @@ Path to input directories and corresponding parameters has to be specified in a 
 12. `AssaySpec`: Target sequence and PAM length denoted by number of Ns, seperated by underscore'
 
 #### Details on how to set AssaySpec
-For PAM values occuring on the 3' end of the spacer, the AssaySpec should be set as follows:
+For PAM values occuring on the 3' end of the spacer (e.g., Rep-1), the AssaySpec should be set (1) A '_' is needed between the spacer and the PAM, and (2) the length of the Ns being the length of candidate PAM, as follows:
 ```
-NNNNNNNNNN_ATCGATCGATCG
+GTGAGCCACTGTGCCTGGCC_NNNNNNNNNN
 ```
 
-For PAM values occuring on the 5' end of the spacer, the AssaySpec should be set as follows:
+For PAM values occuring on the 5' end of the spacer, the AssaySpec (e.g., Rep-1RC as the spacer; 10-nt-long PAM) should be set as follows:
 ```
-ATCGATCGATCG_NNNNNNNNNNN
+NNNNNNNNNNN_GGCCAGGCACAGTGGCTCAC
 ```
 
 ### Outputs
