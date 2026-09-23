@@ -1,7 +1,7 @@
 process chromatin_accessibility{
     tag {meta.id}
 
-    conda params.r_conda
+    conda params.genomePAM
     errorStrategy 'ignore'
     input:
         tuple val(meta), path(identified_offtargets)
@@ -11,7 +11,7 @@ process chromatin_accessibility{
     script:
     """
     echo "[LOG] Running chromatin_accessibility..."
-    ${params.r_conda}/bin/Rscript ${projectDir}/bin/chromatin_accessibility.R \
+    Rscript ${projectDir}/bin/chromatin_accessibility.R \
         ${identified_offtargets}
     ## Move files to base directory
     mv output/*.pdf .

@@ -1,0 +1,3 @@
+[submodule "modules/guideseq/umi"]
+	path = modules/guideseq/umi
+	url = git@github.com:aryeelab/umi.git

@@ -1,35 +1,68 @@
+# GenomePAM
+
 ![genomePAM](resources/img/genomePAM_logo.png)
 
-# GenomePAM
-Nextflow pipeline to identify human PAM
+**GenomePAM** is a pipeline for identifying PAM (Protospacer Adjacent Motif) sequences from GUIDE-seq-style NGS data in the human genome (hg38). It takes demultiplexed paired-end FASTQ files as input, performs read trimming, UMI tagging and consolidation, aligns reads to the reference genome with BWA, identifies and annotates off-target sites, and produces comprehensive reports including PAM sequence logos and visualization of off-target sites.
 
-## Setup
-Please install the following programs
-## Pre-requisites
-- Nextflow (https://www.nextflow.io/)
-- ~~GUIDE-seq (https://github.com/tsailabSJ/guideseq)~~ (The GUIDE-Seq [v1] module has been integrated into this project.)
-- BBMap (https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbmap-guide/)
-- snpEff (http://pcingola.github.io/SnpEff/)
-- BWA (https://github.com/lh3/bwa)
-- BWA-indexed reference genome
-- Conda
-- R
+## Table of Contents
 
+- [GenomePAM](#genomepam)
+  - [Table of Contents](#table-of-contents)
+  - [Pipeline Overview](#pipeline-overview)
+  - [Requirements](#requirements)
+  - [Installation](#installation)
+    - [1. Clone the repository](#1-clone-the-repository)
+    - [2. Download and index the reference genome](#2-download-and-index-the-reference-genome)
+    - [3. Create the conda environment](#3-create-the-conda-environment)
+  - [Configuration](#configuration)
+    - [`nextflow.config`](#nextflowconfig)
+    - [`parameters.yml`](#parametersyml)
+  - [Usage](#usage)
+    - [Inputs](#inputs)
+    - [AssaySpec details](#assayspec-details)
+    - [Outputs](#outputs)
+    - [Command](#command)
+  - [Resource Configuration](#resource-configuration)
+  - [License](#license)
 
-## Setup
-Please install the required programs and conda environment
+## Pipeline Overview
 
-Conda environment YAML can be found in `conda` folder:
+The pipeline performs the following steps:
+
+1. **Quality control** of raw sequencing reads (FastQC + MultiQC)
+2. **Trimming and UMI tagging** of reads (adapter trimming, UMI extraction)
+3. **Consolidation** of PCR duplicate reads
+4. **Quality control** of trimmed and consolidated reads (FastQC + MultiQC)
+5. **Alignment** to the reference genome (BWA) and **off-target identification**
+6. **Annotation** of off-target sites (hg38 only)
+7. **Visualization** of off-target sites and PAM sequence logos, plus the GenomePAM report
+
+## Requirements
+
+- [Conda](https://docs.conda.io/en/latest/) (or [Miniconda](https://docs.conda.io/en/latest/miniconda.html))
+- Internet access for downloading the reference genome and conda packages
+
+## Installation
+
+### 1. Clone the repository
+
+Check whether the `genomePAM` repository already exists in your working directory. If not, create and clone it (including submodules):
 
 ```shell
-conda env create -f genomePAM.yml 
+mkdir genomePAM && cd genomePAM
+git clone --recurse-submodules git@github.com:Zheng-NGS-Lab/genomePAM.git
 ```
+
+If the repository has already been cloned, download/update the submodules (e.g., the [UMI](https://github.com/aryeelab/umi) preprocessing library used by the GUIDE-seq module) with:
 
 ```shell
-conda env create -f r_conda.yml
+git submodule update --init --recursive
 ```
 
-Please use BWA to index the reference genome
+### 2. Download and index the reference genome
+
+Download the GRCh38 (hg38) reference genome and build the BWA index:
+
 ```shell
 wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
 mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz hg38.fna.gz
@@ -37,62 +70,109 @@ gunzip hg38.fna.gz
 bwa index hg38.fna
 ```
 
-### Config
-Please change the path to BBMap, snpEff and bwa in `nextflow.config`
+### 3. Create the conda environment
+
+Create the `genomePAM` conda environment from the provided environment file:
+
+```shell
+conda env create -f environment.yml
 ```
-r_conda = "/path/to/env/r_conda"
-genomePAM = "/path/to/env/genomePAM"
-BBMAPDIR = "/path/to/bbmap"
-GUIDESEQDIR = "$projectDir/modules/guideseq"   // Fixed, no modifications needed.
-SNPEFFDIR = "/path/to/snpEff"
-BWA = "/path/to/bwa"
+
+## Configuration
+
+### `nextflow.config`
+
+Edit `nextflow.config` to point `genomePAM` to your local conda environment and `hg38` to your BWA-indexed reference genome:
+
 ```
-Set the bwa indexed hg38's path
+params {
+    // Path to conda env
+    genomePAM = "/path/to/env/genomePAM"
+
+    // Reference genome (bwa indexed)
+    hg38 = "/path/to/bwa_indexed/hg38.fna"
+}
 ```
-// Reference genomes (bwa indexed)
-hg38 = "/path/to/bwa_indexed/hg38.fna"
-```
+
+
+### `parameters.yml`
+
+All assay-specific parameters (input/output paths, reads layout, target specification) are defined in the [`parameters.yml`](parameters.yml) file. See [Inputs](#inputs) below for a full description of each parameter.
 
 ## Usage
+
 ### Inputs
-Path to input directories and corresponding parameters has to be specified in a `parameters.yml` file:
 
-1. `FQDIR`: Path to input directories containing demultiplexed pair-end FASTQ
-2. `OUTDIR`: Path to output directories
-3. `BWATHREADS`: Number of threads used in the BWA alignment step
-4. `Read1Tail`: Custom sequence added to the tail of read 1
-5. `Read2Tail`: Custom sequence added to the tail of read 2
-6. `pos1`: 
-7. `pos2`: 
-8. `posR2`: 
-9. `xNs`: Length of N
-10. `FIXSEQ`: Fixed Sequence from NGS run
-11. `GENOME`: Path to a BWA-indexed reference genome
-12. `AssaySpec`: Target sequence and PAM length denoted by number of Ns, seperated by underscore'
+Paths to input directories and the corresponding parameters must be specified in a `parameters.yml` file:
 
-#### Details on how to set AssaySpec
-For PAM values occuring on the 3' end of the spacer (e.g., Rep-1), the AssaySpec should be set (1) A '_' is needed between the spacer and the PAM, and (2) the length of the Ns being the length of candidate PAM, as follows:
+| Parameter    | Default value                | Description                                                                                       |
+|--------------|------------------------------|---------------------------------------------------------------------------------------------------|
+| `FQDIR`      | — (required)                 | Path to the input directory containing demultiplexed paired-end FASTQ files                        |
+| `OUTDIR`     | — (required)                 | Path to the output directory                                                                      |
+| `BWATHREADS` | `4`                          | Number of threads used in the BWA alignment step                                                   |
+| `Read1Tail`  | `AGATCGGAAGAGCACACGTC`       | Custom adapter sequence trimmed from the tail of read 1                                            |
+| `Read2Tail`  | `AGATCGGAAGAGCGTCGTGT`       | Custom adapter sequence trimmed from the tail of read 2                                            |
+| `pos1`       | `11`                         | 1-based start position of the FIXSEQ in read 1 (equals UMI length + 1)                             |
+| `pos2`       | `18`                         | End position of the UMI + FIXSEQ region in read 1 (equals UMI length + FIXSEQ length)              |
+| `posR2`      | `8`                          | Length of the FIXSEQ                                                                              |
+| `xNs`        | `NNNNNNNNNN`                 | Placeholder string of Ns (e.g., `NNNNNNNNNN`), used to fill reads with a missing UMI or barcode; its length should match the UMI length (`pos1` − 1) |
+| `FIXSEQ`     | `AGTGACAC`                   | Part of the adaptor sequence. ([details](https://github.com/Zheng-NGS-Lab/genomePAM/issues/2#issuecomment-4934451492)) |
+| `GENOME`     | `hg38`                       | Reference genome identifier. Use `hg38` to enable annotation and the GenomePAM report; other genomes run the visualization branch only |
+| `AssaySpec`  | — (required)                 | Target (spacer) sequence and PAM length denoted by the number of Ns, separated by an underscore    |
+
+Default values are the ones shipped in the provided [`parameters.yml`](parameters.yml). Note that the pipeline validates that every parameter has a value — `FQDIR`, `OUTDIR`, and `AssaySpec` must always be filled in by the user before running.
+
+### AssaySpec details
+
+For PAM values occurring on the **3' end** of the spacer (e.g., Rep-1), the `AssaySpec` should be set such that (1) a `_` separates the spacer and the PAM, and (2) the length of the Ns equals the length of the candidate PAM:
+
 ```
 GTGAGCCACTGTGCCTGGCC_NNNNNNNNNN
 ```
 
-For PAM values occuring on the 5' end of the spacer, the AssaySpec (e.g., Rep-1RC as the spacer; 10-nt-long PAM) should be set as follows:
+For PAM values occurring on the **5' end** of the spacer (e.g., Rep-1RC as the spacer; 10-nt-long PAM), the `AssaySpec` should be set as follows:
+
 ```
 NNNNNNNNNNN_GGCCAGGCACAGTGGCTCAC
 ```
 
 ### Outputs
-1. BWA alignment in BAM
-2. Table of identified offtarget sites (raw and annotated)
-3. Visualization of identified offtargets and PAM sequence logo
-![Seqlogo](resources/img/seqlogo.png)
-4. MultiQC reports of raw FASTQ and trimmed+consolidated FASTQ
-5. GenomePAM report
-   - SaCas9 ![/SaCas9](resources/img/SaCas9_genomePAM.png)
-   - SpCas9 ![SpCas9](resources/img/SpCas9_genomePAM.png)
 
+1. BWA alignment files in BAM format
+2. Tables of identified off-target sites (raw and annotated)
+3. Visualization of identified off-target sites and the PAM sequence logo
+
+    ![Seqlogo](resources/img/seqlogo.png)
+
+4. MultiQC reports of raw FASTQ and trimmed + consolidated FASTQ
+5. GenomePAM report
+    - SaCas9
+
+        ![SaCas9](resources/img/SaCas9_genomePAM.png)
+
+    - SpCas9
+
+        ![SpCas9](resources/img/SpCas9_genomePAM.png)
 
 ### Command
-```
+
+Activate the conda environment and run the pipeline:
+
+```shell
+conda activate genomePAM
 nextflow run main.nf -params-file parameters.yml -with-report run_report.html
 ```
+
+## Resource Configuration
+
+The pipeline auto-detects available CPUs and memory for the local executor (reserving 2 cores and 8 GB for the system). You can override these limits on the command line:
+
+```shell
+nextflow run main.nf -params-file parameters.yml --max_cpus 8 --max_memory 64GB
+```
+
+Note: `BWATHREADS` must not exceed the executor CPU limit, otherwise the pipeline exits with an error.
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.

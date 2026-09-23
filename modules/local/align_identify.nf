@@ -1,6 +1,9 @@
 process align_identify{
     tag {meta.id}
 
+    beforeScript "mkdir aligned"
+    afterScript "rmdir identified aligned"
+
     conda params.genomePAM
 
     input:
@@ -10,9 +13,6 @@ process align_identify{
     tuple val(meta), path('*.bam'), emit: aligned_bam
     tuple val(meta), path('*.bam.bai'), emit: aligned_bam_idx
     tuple val(meta), path('*_identifiedOfftargets.txt'), emit: identified_offtargets
-
-    beforeScript "mkdir aligned"
-    afterScript "rmdir identified aligned"
 
     script:
     """
@@ -25,7 +25,7 @@ process align_identify{
     reference=${params.hg38}
 
     # Align the consolidated FASTQ to reference
-    ${params.BWA} mem -t ${params.BWATHREADS} \$reference \\
+    bwa mem -t ${params.BWATHREADS} \$reference \\
         ${consolidated_reads[0]} ${consolidated_reads[1]} > aligned/${meta.id}.sam
     
     # Identify off-target sites with guideseq.py

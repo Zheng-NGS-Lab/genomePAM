@@ -9,7 +9,7 @@ process visualize{
     output:
         tuple val(meta), path('*.pdf'), emit: sequence_logo
         path('.*_stats.csv'), emit: count_stat
-        path('*.html'), emit: background_count
+        // path('*.html'), emit: background_count
         
     script:
     """
@@ -33,7 +33,7 @@ process visualize{
 
     # Run plot-PAM.R for visualization
     echo "[LOG] Running plot-PAM.R..."
-    ${params.genomePAM}/bin/Rscript ${projectDir}/bin/plot-PAM.R \
+    Rscript ${projectDir}/bin/plot-PAM.R \
         ${identified_offtargets} \
         \$TargetSeq_noPAM \
         \$TargetSeq \
@@ -43,12 +43,12 @@ process visualize{
     echo "[LOG] Running plot-PAM_pos4.R..."
     run_date=\$(date "+%Y%m%d")
 
-    ${params.genomePAM}/bin/Rscript ${projectDir}/bin/plot-PAM_pos4.R \
+    Rscript ${projectDir}/bin/plot-PAM_pos4.R \
         ${identified_offtargets} \$run_date
         
     echo "[LOG] Running counts script.R..."
-    ${params.r_conda}/bin/Rscript ${projectDir}/bin/genomePAM.R \
-        ${identified_offtargets} ${projectDir}/resources/background_count/
+    #Rscript ${projectDir}/bin/genomePAM.R \
+    #    ${identified_offtargets} ${projectDir}/resources/background_count/
     """
 }
 

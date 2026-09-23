@@ -1,6 +1,8 @@
 process trim_tag_umi{
     tag {meta.id}
 
+    conda params.genomePAM
+
     input:
     tuple val(meta), path(reads)
 
@@ -12,8 +14,8 @@ process trim_tag_umi{
     """
     ## - Read1: trim i7 adaptor
     zcat ${reads[0]} > _R1.fastq
-    ${params.BBMAPDIR}/bbduk.sh in=_R1.fastq out=_R1.trm7.fastq literal="${params.Read1Tail},GGGGGGGGGGGGGGGGGGGG" ktrim=r k=20 mink=3 edist=0 ordered=t minlength=0 qtrim=r trimq=10 threads=1 -Xmx4g &> trim.R1.log
-    ${params.BBMAPDIR}/bbduk.sh in=_R1.trm7.fastq out=_R1.nolinker.fastq forcetrimleft=${params.pos2} minlength=0 threads=1 -Xmx4g
+    bbduk.sh in=_R1.fastq out=_R1.trm7.fastq literal="${params.Read1Tail},GGGGGGGGGGGGGGGGGGGG" ktrim=r k=20 mink=3 edist=0 ordered=t minlength=0 qtrim=r trimq=10 threads=1 -Xmx4g &> trim.R1.log
+    bbduk.sh in=_R1.trm7.fastq out=_R1.nolinker.fastq forcetrimleft=${params.pos2} minlength=0 threads=1 -Xmx4g
 
     # - prep barcodes using the first 10000 reads, with freq at least 10
     head -n 40000 _R1.trm7.fastq | paste - - - - | cut -f 2 \
@@ -50,11 +52,11 @@ process trim_tag_umi{
 
     ##=== Read 2 ===
     zcat ${reads[1]} > _R2.fastq
-    ${params.BBMAPDIR}/bbduk.sh in=_R2.fastq out=_R2.trm5.fastq literal="${params.Read2Tail},GGGGGGGGGGGGGGGGGGGG" ktrim=r k=20 mink=3 edist=0 ordered=t minlength=0 qtrim=r trimq=10 threads=1 -Xmx4g &> trim.R2.log
+    bbduk.sh in=_R2.fastq out=_R2.trm5.fastq literal="${params.Read2Tail},GGGGGGGGGGGGGGGGGGGG" ktrim=r k=20 mink=3 edist=0 ordered=t minlength=0 qtrim=r trimq=10 threads=1 -Xmx4g &> trim.R2.log
 
     #=== trim R2 tail r1seqRC
     r1seqRC=\$(echo ${params.FIXSEQ} | rev | tr 'ATCG' 'TAGC' | sed 's: .*::' | sed 's:\t.*::')
-    ${params.BBMAPDIR}/bbduk.sh in=_R2.trm5.fastq out=_R2.trmr1.fastq restrictright=${params.pos2} literal="\$r1seqRC" ktrim=r k=8 mink=7 edist=0 ordered=t minlength=0 qtrim=r trimq=10 threads=1 -Xmx4g
+    bbduk.sh in=_R2.trm5.fastq out=_R2.trmr1.fastq restrictright=${params.pos2} literal="\$r1seqRC" ktrim=r k=8 mink=7 edist=0 ordered=t minlength=0 qtrim=r trimq=10 threads=1 -Xmx4g
 
     # - Read2: output i5 barcode Read2
     if [[ \$field_num -eq 2 ]]; then

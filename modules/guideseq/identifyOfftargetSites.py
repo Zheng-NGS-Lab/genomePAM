@@ -296,7 +296,7 @@ def analyze(sam_filename, reference_genome, outfile, annotations, windowsize, ma
 		os.makedirs(output_folder)
 
 	logger.info("Processing SAM file %s", sam_filename)
-	file = open(sam_filename, 'rU')
+	file = open(sam_filename, 'r')
 	__, filename_tail = os.path.split(sam_filename)
 	chromosome_position = chromosomePosition(reference_genome)
 	for line in file:
@@ -426,7 +426,7 @@ def assignPrimerstoReads(read_sequence, sam_flag):
 
 
 def loadFileIntoArray(filename):
-	with open(filename, 'rU') as f:
+	with open(filename, 'r') as f:
 		keys = f.readline().rstrip('\r\n').split('\t')[1:]
 		data = collections.defaultdict(dict)
 		for line in f:
