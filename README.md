@@ -17,6 +17,7 @@
   - [Configuration](#configuration)
     - [`nextflow.config`](#nextflowconfig)
     - [`parameters.yml`](#parametersyml)
+  - [Test Run](#test-run)
   - [Usage](#usage)
     - [Inputs](#inputs)
     - [AssaySpec details](#assayspec-details)
@@ -99,6 +100,18 @@ params {
 
 All assay-specific parameters (input/output paths, reads layout, target specification) are defined in the [`parameters.yml`](parameters.yml) file. See [Inputs](#inputs) below for a full description of each parameter.
 
+## Test Run
+
+A minimal test dataset is bundled in the [`example/`](example) directory: two paired-end FASTQ files (`sample_R1.fastq.gz` and `sample_R2.fastq.gz`) together with a ready-to-use parameter file [`test.parameters.yml`](example/test.parameters.yml). After completing the [Installation](#installation) and [Configuration(nextflow.config)](#nextflowconfig) steps, verify the installation with:
+
+```shell
+cd genomePAM
+conda activate genomePAM
+nextflow run main.nf -params-file ./example/test.parameters.yml -with-report test.html
+```
+
+On success, results are written to `./results` and the run report to `test.html`.
+
 ## Usage
 
 ### Inputs
@@ -138,6 +151,8 @@ NNNNNNNNNNN_GGCCAGGCACAGTGGCTCAC
 
 ### Outputs
 
+> **Note:** The images below are for illustration only — they are not the actual results of the [Test Run](#test-run).
+
 1. BWA alignment files in BAM format
 2. Tables of identified off-target sites (raw and annotated)
 3. Visualization of identified off-target sites and the PAM sequence logo
@@ -159,6 +174,7 @@ NNNNNNNNNNN_GGCCAGGCACAGTGGCTCAC
 Activate the conda environment and run the pipeline:
 
 ```shell
+cd genomePAM
 conda activate genomePAM
 nextflow run main.nf -params-file parameters.yml -with-report run_report.html
 ```

@@ -1,8 +1,9 @@
-example*
 .nextflow*
 *.log
 
-results/
-work/
+results*/
+work*/
 
 __pycache__/
+
+reference/
