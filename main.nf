@@ -17,6 +17,9 @@ include { chromatin_accessibility } from './modules/local/chromatin_accessibilit
 // log.info ""
 
 workflow {
+    // =========================================================================
+    // 1、Pre-Check
+    // =========================================================================
     // Report effective resource settings at startup
     log.info """
     genomePAM resource settings
@@ -49,7 +52,7 @@ workflow {
         empty_params.each { name, value ->
             log.error "Param '${name}' has no value"
         }
-        error "Found ${empty_params.size()} param(s) without a value in the -params-file -- fill in every field of the params file, then rerun"
+        error "[ERROR] Found ${empty_params.size()} param(s) without a value in the -params-file -- fill in every field of the params file, then rerun"
     }
 
     // BWATHREADS / pos1 / pos2 / posR2 must be numbers (digits only)
@@ -66,7 +69,7 @@ workflow {
         non_numeric_params.each { name, value ->
             log.error "Param '${name}' is not a number: ${value}"
         }
-        error "Found ${non_numeric_params.size()} non-numeric param(s) -- BWATHREADS, pos1, pos2 and posR2 must be numbers (digits only); fix the params file, then rerun"
+        error "[ERROR] Found ${non_numeric_params.size()} non-numeric param(s) -- BWATHREADS, pos1, pos2 and posR2 must be numbers (digits only); fix the params file, then rerun"
     }
 
     // Warn (instead of aborting) when a genome other than hg38 is requested,
@@ -78,7 +81,7 @@ workflow {
     }
 
     if ((params.BWATHREADS as Integer) > (params.max_cpus as Integer)) {
-        error "params.BWATHREADS (${params.BWATHREADS}) exceeds the executor cpu limit (${params.max_cpus}) -- align_identify tasks would be rejected; rerun with --BWATHREADS ${params.max_cpus} or lower"
+        error "[ERROR] params.BWATHREADS (${params.BWATHREADS}) exceeds the executor cpu limit (${params.max_cpus}) -- align_identify tasks would be rejected; rerun with --BWATHREADS ${params.max_cpus} or lower"
     }
 
     // Validate required paths defined in nextflow.config before starting
@@ -91,9 +94,27 @@ workflow {
         missing_paths.each { name, path ->
             log.error "Missing required path '${name}': ${path}"
         }
-        error "Found ${missing_paths.size()} missing required path(s) defined in nextflow.config -- fix the params or create the files/directories, then rerun"
+        error "[ERROR] Found ${missing_paths.size()} missing required path(s) defined in nextflow.config -- fix the params or create the files/directories, then rerun"
     }
 
+    // Validate the modules/guideseq/umi git submodule is properly cloned.
+    def umi_required_files = [
+        'umi/__init__.py',
+        'umi/demultiplex.py',
+        'umi/umitag.py',
+        'umi/consolidate.py',
+    ].collect { "${params.GUIDESEQDIR}/${it}" }
+    def umi_missing_files = umi_required_files.findAll { !file(it).exists() }
+    if (umi_missing_files) {
+        umi_missing_files.each { path ->
+            log.error "Missing umi submodule file: ${path}"
+        }
+        error "[ERROR] The git submodule 'modules/guideseq/umi' is not cloned or incomplete -- run 'git submodule update --init --recursive' in the project directory, then rerun"
+    }
+
+    // =========================================================================
+    // 2、Analysis
+    // =========================================================================
     ch_raw_short_reads = Channel.fromFilePairs(params.FQDIR +'/*_{R1,R2}*.fastq.gz', size: 2)
     .map {
         row -> 

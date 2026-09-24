@@ -12,8 +12,8 @@
   - [Requirements](#requirements)
   - [Installation](#installation)
     - [1. Clone the repository](#1-clone-the-repository)
-    - [2. Download and index the reference genome](#2-download-and-index-the-reference-genome)
-    - [3. Create the conda environment](#3-create-the-conda-environment)
+    - [2. Create the conda environment](#2-create-the-conda-environment)
+    - [3. Download and index the reference genome](#3-download-and-index-the-reference-genome)
   - [Configuration](#configuration)
     - [`nextflow.config`](#nextflowconfig)
     - [`parameters.yml`](#parametersyml)
@@ -50,7 +50,6 @@ The pipeline performs the following steps:
 Check whether the `genomePAM` repository already exists in your working directory. If not, create and clone it (including submodules):
 
 ```shell
-mkdir genomePAM && cd genomePAM
 git clone --recurse-submodules git@github.com:Zheng-NGS-Lab/genomePAM.git
 ```
 
@@ -60,23 +59,24 @@ If the repository has already been cloned, download/update the submodules (e.g.,
 git submodule update --init --recursive
 ```
 
-### 2. Download and index the reference genome
-
-Download the GRCh38 (hg38) reference genome and build the BWA index:
-
-```shell
-wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
-mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz hg38.fna.gz
-gunzip hg38.fna.gz
-bwa index hg38.fna
-```
-
-### 3. Create the conda environment
+### 2. Create the conda environment
 
 Create the `genomePAM` conda environment from the provided environment file:
 
 ```shell
 conda env create -f environment.yml
+```
+
+### 3. Download and index the reference genome
+
+Download the GRCh38 (hg38) reference genome and build the BWA index:
+
+```shell
+conda activate genomePAM
+mkdir -p ~/reference
+wget -c -O ~/reference/hg38.fna.gz https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
+gunzip ~/reference/hg38.fna.gz
+bwa index ~/reference/hg38.fna
 ```
 
 ## Configuration
